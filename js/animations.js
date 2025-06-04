@@ -44,7 +44,10 @@ export function animatePieces(
   return Promise.all(promises).then(() => layer);
 }
 
-export function animateHundredToTens(g, columnWidth, height, hundredsCount, tensCount) {
+export function animateHundredToTens(g, columnWidth, height, hundredsCount, tensCount, blocksG) {
+  if (blocksG) {
+    blocksG.select(`g.hundred-block[data-index="${hundredsCount - 1}"]`).remove();
+  }
   const startBase = hundredPosition(hundredsCount - 1, columnWidth, height);
   const startPositions = Array.from({ length: 10 }, (_, i) => ({
     x: startBase.x + i * UNIT,
@@ -56,7 +59,10 @@ export function animateHundredToTens(g, columnWidth, height, hundredsCount, tens
   return animatePieces(g, 10, createRod, startPositions, endPositions);
 }
 
-export function animateTensToOnes(g, columnWidth, height, tensCount, onesCount) {
+export function animateTensToOnes(g, columnWidth, height, tensCount, onesCount, blocksG) {
+  if (blocksG) {
+    blocksG.select(`g.ten-rod[data-index="${tensCount - 1}"]`).remove();
+  }
   const rodPos = tenPosition(tensCount - 1, columnWidth, height);
   const startPositions = Array.from({ length: 10 }, (_, i) => ({
     x: rodPos.x,

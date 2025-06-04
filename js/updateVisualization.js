@@ -60,7 +60,8 @@ export function update(g, columnWidth, height, value) {
               columnWidth,
               height,
               digits.hundreds,
-              digits.tens
+              digits.tens,
+              blocksG
             );
             digits.hundreds -= 1;
             digits.tens += 10;
@@ -81,7 +82,8 @@ export function update(g, columnWidth, height, value) {
                 columnWidth,
                 height,
                 digits.tens,
-                digits.ones
+                digits.ones,
+                blocksG
               );
               digits.tens -= 1;
               digits.ones += 10;
@@ -130,6 +132,12 @@ export function update(g, columnWidth, height, value) {
 
 function drawHundreds(group, count, height, onClick) {
   for (let idx = 0; idx < count; idx++) {
+    const block = group
+      .append('g')
+      .attr('class', 'hundred-block')
+      .attr('data-index', idx)
+      .on('click', onClick);
+
     const row = Math.floor(idx / 3);
     const col = idx % 3;
     const xStart = col * (HUNDRED_SIZE + GAP);
@@ -137,7 +145,7 @@ function drawHundreds(group, count, height, onClick) {
 
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
-        group
+        block
           .append('rect')
           .attr('x', xStart + c * UNIT)
           .attr('y', yStart + r * UNIT)
@@ -145,8 +153,7 @@ function drawHundreds(group, count, height, onClick) {
           .attr('height', UNIT)
           .attr('fill', '#69b3a2')
           .attr('stroke', '#fff')
-          .attr('stroke-width', 0.5)
-          .on('click', onClick);
+          .attr('stroke-width', 0.5);
       }
     }
   }
@@ -154,13 +161,23 @@ function drawHundreds(group, count, height, onClick) {
 
 function drawTens(group, count, height, onClick, onRightClick) {
   for (let idx = 0; idx < count; idx++) {
+    const rod = group
+      .append('g')
+      .attr('class', 'ten-rod')
+      .attr('data-index', idx)
+      .on('click', onClick)
+      .on('contextmenu', (e) => {
+        e.preventDefault();
+        onRightClick();
+      });
+
     const row = Math.floor(idx / 10);
     const col = idx % 10;
     const xStart = col * (UNIT + GAP);
     const yStart = height - HUNDRED_SIZE - row * (HUNDRED_SIZE + GAP);
 
     for (let r = 0; r < 10; r++) {
-      group
+      rod
         .append('rect')
         .attr('x', xStart)
         .attr('y', yStart + r * UNIT)
@@ -168,12 +185,7 @@ function drawTens(group, count, height, onClick, onRightClick) {
         .attr('height', UNIT)
         .attr('fill', '#69b3a2')
         .attr('stroke', '#fff')
-        .attr('stroke-width', 0.5)
-        .on('click', onClick)
-        .on('contextmenu', (e) => {
-          e.preventDefault();
-          onRightClick();
-        });
+        .attr('stroke-width', 0.5);
     }
   }
 }
