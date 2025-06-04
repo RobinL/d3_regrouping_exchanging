@@ -1,6 +1,6 @@
 import { splitNumber } from './utils.js';
 
-const UNIT = 8; // size of a single unit square in pixels
+const UNIT = 10; // size of a single unit square in pixels
 const GAP = 2; // gap between blocks
 const HUNDRED_SIZE = UNIT * 10;
 

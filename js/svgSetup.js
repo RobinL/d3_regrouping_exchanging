@@ -1,5 +1,5 @@
-const width = 840;
-const height = 250;
+const width = 960;
+const height = 360;
 const margin = { top: 20, right: 20, bottom: 40, left: 20 };
 
 export function createSvg(container) {
