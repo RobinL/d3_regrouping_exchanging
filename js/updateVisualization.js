@@ -60,16 +60,36 @@ export function update(g, columnWidth, height, value) {
           }
         });
       } else if (i === 1) {
-        drawTens(blocksG, d, blockHeight, () => {
-          if (digits.tens > 0) {
-            digits.tens -= 1;
-            digits.ones += 10;
+        drawTens(
+          blocksG,
+          d,
+          blockHeight,
+          () => {
+            if (digits.tens > 0) {
+              digits.tens -= 1;
+              digits.ones += 10;
+              document.getElementById('number-input').value = digitsToNumber(digits);
+              update(g, columnWidth, height, digits);
+            }
+          },
+          () => {
+            if (digits.tens >= 10) {
+              digits.tens -= 10;
+              digits.hundreds += 1;
+              document.getElementById('number-input').value = digitsToNumber(digits);
+              update(g, columnWidth, height, digits);
+            }
+          }
+        );
+      } else {
+        drawOnes(blocksG, d, blockHeight, () => {
+          if (digits.ones >= 10) {
+            digits.ones -= 10;
+            digits.tens += 1;
             document.getElementById('number-input').value = digitsToNumber(digits);
             update(g, columnWidth, height, digits);
           }
         });
-      } else {
-        drawOnes(blocksG, d, blockHeight);
       }
     });
 }
@@ -98,7 +118,7 @@ function drawHundreds(group, count, height, onClick) {
   }
 }
 
-function drawTens(group, count, height, onClick) {
+function drawTens(group, count, height, onClick, onRightClick) {
   for (let idx = 0; idx < count; idx++) {
     const row = Math.floor(idx / 10);
     const col = idx % 10;
@@ -115,12 +135,16 @@ function drawTens(group, count, height, onClick) {
         .attr('fill', '#69b3a2')
         .attr('stroke', '#fff')
         .attr('stroke-width', 0.5)
-        .on('click', onClick);
+        .on('click', onClick)
+        .on('contextmenu', (e) => {
+          e.preventDefault();
+          onRightClick();
+        });
     }
   }
 }
 
-function drawOnes(group, count, height) {
+function drawOnes(group, count, height, onRightClick) {
   for (let idx = 0; idx < count; idx++) {
     const row = Math.floor(idx / 10);
     const col = idx % 10;
@@ -135,6 +159,10 @@ function drawOnes(group, count, height) {
       .attr('height', UNIT)
       .attr('fill', '#69b3a2')
       .attr('stroke', '#fff')
-      .attr('stroke-width', 0.5);
+      .attr('stroke-width', 0.5)
+      .on('contextmenu', (e) => {
+        e.preventDefault();
+        onRightClick();
+      });
   }
 }
