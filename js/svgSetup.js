@@ -17,11 +17,13 @@ export function createSvg(container) {
   const columnWidth = (width - margin.left - margin.right) / labels.length;
 
   labels.forEach((label, i) => {
-    const x = i * columnWidth;
+    const x = i * columnWidth + columnWidth / 2;
+    const y = height - margin.bottom + 15;
     g.append('text')
-      .attr('x', x + columnWidth / 2)
-      .attr('y', height - margin.bottom + 15)
-      .attr('text-anchor', 'middle')
+      .attr('x', x)
+      .attr('y', y)
+      .attr('text-anchor', 'end')
+      .attr('transform', `rotate(-45 ${x} ${y})`)
       .text(label);
   });
 
