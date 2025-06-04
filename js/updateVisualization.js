@@ -55,7 +55,13 @@ export function update(g, columnWidth, height, value) {
       if (i === 0) {
         drawHundreds(blocksG, d, blockHeight, async () => {
           if (digits.hundreds > 0) {
-            await animateHundredToTens(g, columnWidth, height);
+            await animateHundredToTens(
+              g,
+              columnWidth,
+              height,
+              digits.hundreds,
+              digits.tens
+            );
             digits.hundreds -= 1;
             digits.tens += 10;
             document.getElementById('number-input').value = digitsToNumber(digits);
@@ -69,7 +75,13 @@ export function update(g, columnWidth, height, value) {
           blockHeight,
           async () => {
             if (digits.tens > 0) {
-              await animateTensToOnes(g, columnWidth, height);
+              await animateTensToOnes(
+                g,
+                columnWidth,
+                height,
+                digits.tens,
+                digits.ones
+              );
               digits.tens -= 1;
               digits.ones += 10;
               document.getElementById('number-input').value = digitsToNumber(digits);
@@ -78,7 +90,13 @@ export function update(g, columnWidth, height, value) {
           },
           async () => {
             if (digits.tens >= 10) {
-              await animateTensToHundred(g, columnWidth, height);
+              await animateTensToHundred(
+                g,
+                columnWidth,
+                height,
+                digits.tens,
+                digits.hundreds
+              );
               digits.tens -= 10;
               digits.hundreds += 1;
               document.getElementById('number-input').value = digitsToNumber(digits);
@@ -89,7 +107,13 @@ export function update(g, columnWidth, height, value) {
       } else {
         drawOnes(blocksG, d, blockHeight, async () => {
           if (digits.ones >= 10) {
-            await animateOnesToTens(g, columnWidth, height);
+            await animateOnesToTens(
+              g,
+              columnWidth,
+              height,
+              digits.ones,
+              digits.tens
+            );
             digits.ones -= 10;
             digits.tens += 1;
             document.getElementById('number-input').value = digitsToNumber(digits);
