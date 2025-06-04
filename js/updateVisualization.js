@@ -1,4 +1,4 @@
-import { splitNumber, digitPhrase, expandedValue } from './utils.js';
+import { splitNumber, digitPhrase, expandedValue, digitsToNumber } from './utils.js';
 
 const UNIT = 10; // size of a single unit square in pixels
 const GAP = 2; // gap between blocks
@@ -6,7 +6,7 @@ const HUNDRED_SIZE = UNIT * 10;
 const TEXT_LINE_HEIGHT = 18;
 
 export function update(g, columnWidth, height, value) {
-  const digits = splitNumber(value);
+  const digits = typeof value === 'object' ? value : splitNumber(value);
   const data = [digits.hundreds, digits.tens, digits.ones];
 
   const columns = g.selectAll('.column-group').data(data);
@@ -51,16 +51,30 @@ export function update(g, columnWidth, height, value) {
       const blockHeight = height - offset;
 
       if (i === 0) {
-        drawHundreds(blocksG, d, blockHeight);
+        drawHundreds(blocksG, d, blockHeight, () => {
+          if (digits.hundreds > 0) {
+            digits.hundreds -= 1;
+            digits.tens += 10;
+            document.getElementById('number-input').value = digitsToNumber(digits);
+            update(g, columnWidth, height, digits);
+          }
+        });
       } else if (i === 1) {
-        drawTens(blocksG, d, blockHeight);
+        drawTens(blocksG, d, blockHeight, () => {
+          if (digits.tens > 0) {
+            digits.tens -= 1;
+            digits.ones += 10;
+            document.getElementById('number-input').value = digitsToNumber(digits);
+            update(g, columnWidth, height, digits);
+          }
+        });
       } else {
         drawOnes(blocksG, d, blockHeight);
       }
     });
 }
 
-function drawHundreds(group, count, height) {
+function drawHundreds(group, count, height, onClick) {
   for (let idx = 0; idx < count; idx++) {
     const row = Math.floor(idx / 3);
     const col = idx % 3;
@@ -77,13 +91,14 @@ function drawHundreds(group, count, height) {
           .attr('height', UNIT)
           .attr('fill', '#69b3a2')
           .attr('stroke', '#fff')
-          .attr('stroke-width', 0.5);
+          .attr('stroke-width', 0.5)
+          .on('click', onClick);
       }
     }
   }
 }
 
-function drawTens(group, count, height) {
+function drawTens(group, count, height, onClick) {
   for (let idx = 0; idx < count; idx++) {
     const row = Math.floor(idx / 10);
     const col = idx % 10;
@@ -99,7 +114,8 @@ function drawTens(group, count, height) {
         .attr('height', UNIT)
         .attr('fill', '#69b3a2')
         .attr('stroke', '#fff')
-        .attr('stroke-width', 0.5);
+        .attr('stroke-width', 0.5)
+        .on('click', onClick);
     }
   }
 }
