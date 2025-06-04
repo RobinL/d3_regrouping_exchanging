@@ -99,7 +99,8 @@ export function update(g, columnWidth, height, value) {
                 columnWidth,
                 height,
                 digits.tens,
-                digits.hundreds
+                digits.hundreds,
+                blocksG
               );
               digits.tens -= 10;
               digits.hundreds += 1;
@@ -117,7 +118,8 @@ export function update(g, columnWidth, height, value) {
               columnWidth,
               height,
               digits.ones,
-              digits.tens
+              digits.tens,
+              blocksG
             );
             digits.ones -= 10;
             digits.tens += 1;
@@ -199,6 +201,7 @@ function drawOnes(group, count, height, onRightClick) {
 
     group
       .append('rect')
+      .attr('data-index', idx)
       .attr('x', x)
       .attr('y', y)
       .attr('width', UNIT)
