@@ -55,7 +55,7 @@ export function update(g, columnWidth, height, value) {
       if (i === 0) {
         drawHundreds(blocksG, d, blockHeight, async () => {
           if (digits.hundreds > 0) {
-            await animateHundredToTens(
+            const layer = await animateHundredToTens(
               g,
               columnWidth,
               height,
@@ -66,6 +66,7 @@ export function update(g, columnWidth, height, value) {
             digits.tens += 10;
             document.getElementById('number-input').value = digitsToNumber(digits);
             update(g, columnWidth, height, digits);
+            layer.remove();
           }
         });
       } else if (i === 1) {
@@ -75,7 +76,7 @@ export function update(g, columnWidth, height, value) {
           blockHeight,
           async () => {
             if (digits.tens > 0) {
-              await animateTensToOnes(
+              const layer = await animateTensToOnes(
                 g,
                 columnWidth,
                 height,
@@ -86,11 +87,12 @@ export function update(g, columnWidth, height, value) {
               digits.ones += 10;
               document.getElementById('number-input').value = digitsToNumber(digits);
               update(g, columnWidth, height, digits);
+              layer.remove();
             }
           },
           async () => {
             if (digits.tens >= 10) {
-              await animateTensToHundred(
+              const layer = await animateTensToHundred(
                 g,
                 columnWidth,
                 height,
@@ -101,13 +103,14 @@ export function update(g, columnWidth, height, value) {
               digits.hundreds += 1;
               document.getElementById('number-input').value = digitsToNumber(digits);
               update(g, columnWidth, height, digits);
+              layer.remove();
             }
           }
         );
       } else {
         drawOnes(blocksG, d, blockHeight, async () => {
           if (digits.ones >= 10) {
-            await animateOnesToTens(
+            const layer = await animateOnesToTens(
               g,
               columnWidth,
               height,
@@ -118,6 +121,7 @@ export function update(g, columnWidth, height, value) {
             digits.tens += 1;
             document.getElementById('number-input').value = digitsToNumber(digits);
             update(g, columnWidth, height, digits);
+            layer.remove();
           }
         });
       }
