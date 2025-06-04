@@ -1,12 +1,12 @@
 import { splitNumber } from './utils.js';
 
-const UNIT = 6; // size of a single unit square in pixels
+const UNIT = 8; // size of a single unit square in pixels
 const GAP = 2; // gap between blocks
 const HUNDRED_SIZE = UNIT * 10;
 
 export function update(g, columnWidth, height, value) {
   const digits = splitNumber(value);
-  const data = [digits.thousands, digits.hundreds, digits.tens, digits.ones];
+  const data = [digits.hundreds, digits.tens, digits.ones];
 
   const columns = g.selectAll('.column-group').data(data);
   columns.enter().append('g').attr('class', 'column-group');
@@ -19,18 +19,6 @@ export function update(g, columnWidth, height, value) {
       group.selectAll('*').remove();
 
       if (i === 0) {
-        // thousands column as simple bar
-        group
-          .append('rect')
-          .attr('x', columnWidth / 4)
-          .attr('width', columnWidth / 2)
-          .attr('y', height - (d / 10) * height)
-          .attr('height', (d / 10) * height)
-          .attr('fill', '#69b3a2');
-        return;
-      }
-
-      if (i === 1) {
         // hundreds column - 10x10 blocks arranged in a 3x3 grid
         for (let idx = 0; idx < d; idx++) {
           const row = Math.floor(idx / 3);
@@ -55,7 +43,7 @@ export function update(g, columnWidth, height, value) {
         return;
       }
 
-      if (i === 2) {
+      if (i === 1) {
         // tens column - rods (1x10 blocks) laid out in two rows
         for (let idx = 0; idx < d; idx++) {
           const row = Math.floor(idx / 10);
@@ -78,7 +66,7 @@ export function update(g, columnWidth, height, value) {
         return;
       }
 
-      if (i === 3) {
+      if (i === 2) {
         // ones column - single squares in two rows
         for (let idx = 0; idx < d; idx++) {
           const row = Math.floor(idx / 10);

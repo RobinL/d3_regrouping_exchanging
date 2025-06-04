@@ -13,7 +13,7 @@ export function createSvg(container) {
     .append('g')
     .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-  const labels = ['thousands', 'hundreds', 'tens', 'ones'];
+  const labels = ['hundreds','tens','ones'];
   const columnWidth = (width - margin.left - margin.right) / labels.length;
 
   labels.forEach((label, i) => {
