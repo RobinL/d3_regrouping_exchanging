@@ -1,5 +1,8 @@
 import { splitNumber, digitPhrase, expandedValue, digitsToNumber } from './utils.js';
 import { UNIT, GAP, HUNDRED_SIZE, TEXT_LINE_HEIGHT, COLUMN_GAP } from './constants.js';
+
+const HUNDRED_GRID_WIDTH = HUNDRED_SIZE * 3 + GAP * 2;
+const TEN_GRID_WIDTH = UNIT * 10 + GAP * 9;
 import {
   animateHundredToTens,
   animateTensToOnes,
@@ -49,7 +52,9 @@ export function update(g, columnWidth, height, value) {
         .text(digitPhrase(d, i));
 
       const offset = TEXT_LINE_HEIGHT * 3 + 5;
-      blocksG.attr('transform', `translate(0, ${offset})`);
+      const gridWidths = [HUNDRED_GRID_WIDTH, TEN_GRID_WIDTH, TEN_GRID_WIDTH];
+      const xOffset = (columnWidth - gridWidths[i]) / 2;
+      blocksG.attr('transform', `translate(${xOffset}, ${offset})`);
       const blockHeight = height - offset;
 
       if (i === 0) {

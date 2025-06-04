@@ -1,7 +1,7 @@
 import { COLUMN_GAP } from './constants.js';
 
-const width = 960;
-const height = 360;
+const width = 1040;
+const height = 420;
 const margin = { top: 20, right: 20, bottom: 40, left: 20 };
 
 export function createSvg(container) {
