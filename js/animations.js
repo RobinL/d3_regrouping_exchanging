@@ -1,4 +1,5 @@
-import { UNIT, HUNDRED_SIZE, TEXT_LINE_HEIGHT } from './constants.js';
+import { UNIT } from './constants.js';
+import { hundredPosition, tenPosition, onePosition } from './layout.js';
 
 function createSquare(parent) {
   return parent
@@ -18,10 +19,20 @@ function createRod(parent) {
   return g;
 }
 
-export function animatePieces(g, count, createFn, start, end, delay = 100, duration = 500) {
+export function animatePieces(
+  g,
+  count,
+  createFn,
+  startPositions,
+  endPositions,
+  delay = 100,
+  duration = 500
+) {
   const layer = g.append('g').attr('class', 'anim-layer');
   const promises = [];
   for (let i = 0; i < count; i++) {
+    const start = Array.isArray(startPositions) ? startPositions[i] : startPositions;
+    const end = Array.isArray(endPositions) ? endPositions[i] : endPositions;
     const piece = createFn(layer).attr('transform', `translate(${start.x},${start.y})`);
     const t = piece
       .transition()
@@ -34,35 +45,50 @@ export function animatePieces(g, count, createFn, start, end, delay = 100, durat
   return Promise.all(promises).then(() => layer.remove());
 }
 
-export function centerPosition(columnIndex, columnWidth, height) {
-  const offset = TEXT_LINE_HEIGHT * 3 + 5;
-  const blockHeight = height - offset;
-  return {
-    x: columnIndex * columnWidth + columnWidth / 2 - UNIT / 2,
-    y: offset + blockHeight / 2 - UNIT * 5,
-  };
+export function animateHundredToTens(g, columnWidth, height, hundredsCount, tensCount) {
+  const startBase = hundredPosition(hundredsCount - 1, columnWidth, height);
+  const startPositions = Array.from({ length: 10 }, (_, i) => ({
+    x: startBase.x + i * UNIT,
+    y: startBase.y,
+  }));
+  const endPositions = Array.from({ length: 10 }, (_, i) =>
+    tenPosition(tensCount + i, columnWidth, height)
+  );
+  return animatePieces(g, 10, createRod, startPositions, endPositions);
 }
 
-export function animateHundredToTens(g, columnWidth, height) {
-  const start = centerPosition(0, columnWidth, height);
-  const end = centerPosition(1, columnWidth, height);
-  return animatePieces(g, 10, createRod, start, end);
+export function animateTensToOnes(g, columnWidth, height, tensCount, onesCount) {
+  const rodPos = tenPosition(tensCount - 1, columnWidth, height);
+  const startPositions = Array.from({ length: 10 }, (_, i) => ({
+    x: rodPos.x,
+    y: rodPos.y + i * UNIT,
+  }));
+  const endPositions = Array.from({ length: 10 }, (_, i) =>
+    onePosition(onesCount + i, columnWidth, height)
+  );
+  return animatePieces(g, 10, createSquare, startPositions, endPositions);
 }
 
-export function animateTensToOnes(g, columnWidth, height) {
-  const start = centerPosition(1, columnWidth, height);
-  const end = centerPosition(2, columnWidth, height);
-  return animatePieces(g, 10, createSquare, start, end);
+export function animateTensToHundred(g, columnWidth, height, tensCount, hundredsCount) {
+  const startPositions = Array.from({ length: 10 }, (_, i) =>
+    tenPosition(tensCount - 10 + i, columnWidth, height)
+  );
+  const hundredBase = hundredPosition(hundredsCount, columnWidth, height);
+  const endPositions = Array.from({ length: 10 }, (_, i) => ({
+    x: hundredBase.x + i * UNIT,
+    y: hundredBase.y,
+  }));
+  return animatePieces(g, 10, createRod, startPositions, endPositions);
 }
 
-export function animateTensToHundred(g, columnWidth, height) {
-  const start = centerPosition(1, columnWidth, height);
-  const end = centerPosition(0, columnWidth, height);
-  return animatePieces(g, 10, createRod, start, end);
-}
-
-export function animateOnesToTens(g, columnWidth, height) {
-  const start = centerPosition(2, columnWidth, height);
-  const end = centerPosition(1, columnWidth, height);
-  return animatePieces(g, 10, createSquare, start, end);
+export function animateOnesToTens(g, columnWidth, height, onesCount, tensCount) {
+  const startPositions = Array.from({ length: 10 }, (_, i) =>
+    onePosition(onesCount - 10 + i, columnWidth, height)
+  );
+  const rodPos = tenPosition(tensCount, columnWidth, height);
+  const endPositions = Array.from({ length: 10 }, (_, i) => ({
+    x: rodPos.x,
+    y: rodPos.y + i * UNIT,
+  }));
+  return animatePieces(g, 10, createSquare, startPositions, endPositions);
 }
