@@ -38,11 +38,10 @@ export function animatePieces(
       .transition()
       .delay(i * delay)
       .duration(duration)
-      .attr('transform', `translate(${end.x},${end.y})`)
-      .on('end', () => piece.remove());
+      .attr('transform', `translate(${end.x},${end.y})`);
     promises.push(t.end());
   }
-  return Promise.all(promises).then(() => layer.remove());
+  return Promise.all(promises).then(() => layer);
 }
 
 export function animateHundredToTens(g, columnWidth, height, hundredsCount, tensCount) {
