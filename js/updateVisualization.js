@@ -1,5 +1,5 @@
 import { splitNumber, digitPhrase, expandedValue, digitsToNumber } from './utils.js';
-import { UNIT, GAP, HUNDRED_SIZE, TEXT_LINE_HEIGHT } from './constants.js';
+import { UNIT, GAP, HUNDRED_SIZE, TEXT_LINE_HEIGHT, COLUMN_GAP } from './constants.js';
 import {
   animateHundredToTens,
   animateTensToOnes,
@@ -18,7 +18,7 @@ export function update(g, columnWidth, height, value) {
   columns.exit().remove();
 
   columns
-    .attr('transform', (d, i) => `translate(${i * columnWidth}, 0)`)
+    .attr('transform', (d, i) => `translate(${i * (columnWidth + COLUMN_GAP)}, 0)`)
     .each(function (d, i) {
       const group = d3.select(this);
       const textG = group.select('.value-text');
