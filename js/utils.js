@@ -34,3 +34,7 @@ export function digitPhrase(digit, columnIndex) {
   const plural = digit === 1 ? '' : 's';
   return `${digitToWord(digit)} ${unit}${plural}`;
 }
+
+export function digitsToNumber(d) {
+  return d.hundreds * 100 + d.tens * 10 + d.ones;
+}

@@ -1,11 +1,18 @@
 import { createSvg } from './svgSetup.js';
 import { update } from './updateVisualization.js';
+import { splitNumber } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const { g, columnWidth, height } = createSvg('#visualization');
   const input = document.getElementById('number-input');
-  const updateViz = () => update(g, columnWidth, height, input.value);
+  let digits = splitNumber(input.value);
 
-  input.addEventListener('input', updateViz);
-  updateViz();
+  const render = () => update(g, columnWidth, height, digits);
+
+  input.addEventListener('input', () => {
+    digits = splitNumber(input.value);
+    render();
+  });
+
+  render();
 });
