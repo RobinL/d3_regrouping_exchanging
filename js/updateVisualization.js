@@ -1,151 +1,210 @@
 import { splitNumber, digitPhrase, expandedValue, digitsToNumber } from './utils.js';
 import { UNIT, GAP, HUNDRED_SIZE, TEXT_LINE_HEIGHT } from './constants.js';
-import { hundredPosition, tenPosition, onePosition } from './layout.js';
+import {
+  animateHundredToTens,
+  animateTensToOnes,
+  animateTensToHundred,
+  animateOnesToTens,
+} from './animations.js';
 
-let pieces = [];
-let nextId = 0;
-let digitsState = null;
-let gRoot, columnWidthRoot, heightRoot;
+export function update(g, columnWidth, height, value) {
+  const digits = typeof value === 'object' ? value : splitNumber(value);
+  const data = [digits.hundreds, digits.tens, digits.ones];
 
-function computePositions(digits, columnWidth, height) {
-  const positions = [];
-  for (let h = 0; h < digits.hundreds; h++) {
-    const base = hundredPosition(h, columnWidth, height);
+  const columns = g.selectAll('.column-group').data(data);
+  const enter = columns.enter().append('g').attr('class', 'column-group');
+  enter.append('g').attr('class', 'value-text');
+  enter.append('g').attr('class', 'blocks');
+  columns.exit().remove();
+
+  columns
+    .attr('transform', (d, i) => `translate(${i * columnWidth}, 0)`)
+    .each(function (d, i) {
+      const group = d3.select(this);
+      const textG = group.select('.value-text');
+      const blocksG = group.select('.blocks');
+      textG.selectAll('*').remove();
+      blocksG.selectAll('*').remove();
+
+      const centerX = columnWidth / 2;
+      textG
+        .append('text')
+        .attr('x', centerX)
+        .attr('y', TEXT_LINE_HEIGHT)
+        .attr('text-anchor', 'middle')
+        .text(d);
+
+      textG
+        .append('text')
+        .attr('x', centerX)
+        .attr('y', TEXT_LINE_HEIGHT * 2)
+        .attr('text-anchor', 'middle')
+        .text(expandedValue(d, i));
+
+      textG
+        .append('text')
+        .attr('x', centerX)
+        .attr('y', TEXT_LINE_HEIGHT * 3)
+        .attr('text-anchor', 'middle')
+        .text(digitPhrase(d, i));
+
+      const offset = TEXT_LINE_HEIGHT * 3 + 5;
+      blocksG.attr('transform', `translate(0, ${offset})`);
+      const blockHeight = height - offset;
+
+      if (i === 0) {
+        drawHundreds(blocksG, d, blockHeight, async () => {
+          if (digits.hundreds > 0) {
+            await animateHundredToTens(
+              g,
+              columnWidth,
+              height,
+              digits.hundreds,
+              digits.tens,
+              blocksG
+            );
+            digits.hundreds -= 1;
+            digits.tens += 10;
+            document.getElementById('number-input').value = digitsToNumber(digits);
+            update(g, columnWidth, height, digits);
+          }
+        });
+      } else if (i === 1) {
+        drawTens(
+          blocksG,
+          d,
+          blockHeight,
+          async () => {
+            if (digits.tens > 0) {
+              await animateTensToOnes(
+                g,
+                columnWidth,
+                height,
+                digits.tens,
+                digits.ones,
+                blocksG
+              );
+              digits.tens -= 1;
+              digits.ones += 10;
+              document.getElementById('number-input').value = digitsToNumber(digits);
+              update(g, columnWidth, height, digits);
+            }
+          },
+          async () => {
+            if (digits.tens >= 10) {
+              await animateTensToHundred(
+                g,
+                columnWidth,
+                height,
+                digits.tens,
+                digits.hundreds
+              );
+              digits.tens -= 10;
+              digits.hundreds += 1;
+              document.getElementById('number-input').value = digitsToNumber(digits);
+              update(g, columnWidth, height, digits);
+            }
+          }
+        );
+      } else {
+        drawOnes(blocksG, d, blockHeight, async () => {
+          if (digits.ones >= 10) {
+            await animateOnesToTens(
+              g,
+              columnWidth,
+              height,
+              digits.ones,
+              digits.tens
+            );
+            digits.ones -= 10;
+            digits.tens += 1;
+            document.getElementById('number-input').value = digitsToNumber(digits);
+            update(g, columnWidth, height, digits);
+          }
+        });
+      }
+    });
+}
+
+function drawHundreds(group, count, height, onClick) {
+  for (let idx = 0; idx < count; idx++) {
+    const block = group
+      .append('g')
+      .attr('class', 'hundred-block')
+      .attr('data-index', idx)
+      .on('click', onClick);
+
+    const row = Math.floor(idx / 3);
+    const col = idx % 3;
+    const xStart = col * (HUNDRED_SIZE + GAP);
+    const yStart = height - HUNDRED_SIZE - row * (HUNDRED_SIZE + GAP);
+
     for (let r = 0; r < 10; r++) {
       for (let c = 0; c < 10; c++) {
-        positions.push({
-          x: base.x + c * UNIT,
-          y: base.y + r * UNIT,
-          column: 'hundreds',
-        });
+        block
+          .append('rect')
+          .attr('x', xStart + c * UNIT)
+          .attr('y', yStart + r * UNIT)
+          .attr('width', UNIT)
+          .attr('height', UNIT)
+          .attr('fill', '#69b3a2')
+          .attr('stroke', '#fff')
+          .attr('stroke-width', 0.5);
       }
     }
   }
+}
 
-  for (let t = 0; t < digits.tens; t++) {
-    const pos = tenPosition(t, columnWidth, height);
-    for (let r = 0; r < 10; r++) {
-      positions.push({
-        x: pos.x,
-        y: pos.y + r * UNIT,
-        column: 'tens',
+function drawTens(group, count, height, onClick, onRightClick) {
+  for (let idx = 0; idx < count; idx++) {
+    const rod = group
+      .append('g')
+      .attr('class', 'ten-rod')
+      .attr('data-index', idx)
+      .on('click', onClick)
+      .on('contextmenu', (e) => {
+        e.preventDefault();
+        onRightClick();
       });
+
+    const row = Math.floor(idx / 10);
+    const col = idx % 10;
+    const xStart = col * (UNIT + GAP);
+    const yStart = height - HUNDRED_SIZE - row * (HUNDRED_SIZE + GAP);
+
+    for (let r = 0; r < 10; r++) {
+      rod
+        .append('rect')
+        .attr('x', xStart)
+        .attr('y', yStart + r * UNIT)
+        .attr('width', UNIT)
+        .attr('height', UNIT)
+        .attr('fill', '#69b3a2')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 0.5);
     }
   }
+}
 
-  for (let o = 0; o < digits.ones; o++) {
-    const pos = onePosition(o, columnWidth, height);
-    positions.push({ x: pos.x, y: pos.y, column: 'ones' });
+function drawOnes(group, count, height, onRightClick) {
+  for (let idx = 0; idx < count; idx++) {
+    const row = Math.floor(idx / 10);
+    const col = idx % 10;
+    const x = col * (UNIT + GAP);
+    const y = height - UNIT - row * (UNIT + GAP);
+
+    group
+      .append('rect')
+      .attr('x', x)
+      .attr('y', y)
+      .attr('width', UNIT)
+      .attr('height', UNIT)
+      .attr('fill', '#69b3a2')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 0.5)
+      .on('contextmenu', (e) => {
+        e.preventDefault();
+        onRightClick();
+      });
   }
-
-  return positions;
 }
-
-function updateTexts(columns, data, columnWidth) {
-  const enter = columns.enter().append('g').attr('class', 'column-group');
-  enter.append('g').attr('class', 'value-text');
-  columns.exit().remove();
-
-  columns = enter.merge(columns);
-  columns.attr('transform', (d, i) => `translate(${i * columnWidth},0)`);
-
-  columns.each(function (d, i) {
-    const group = d3.select(this);
-    const textG = group.select('.value-text');
-    const centerX = columnWidth / 2;
-
-    const value = textG
-      .selectAll('text')
-      .data([d, expandedValue(d, i), digitPhrase(d, i)]);
-
-    value
-      .enter()
-      .append('text')
-      .merge(value)
-      .attr('x', centerX)
-      .attr('y', (_, idx) => TEXT_LINE_HEIGHT * (idx + 1))
-      .attr('text-anchor', 'middle')
-      .text((t) => t);
-
-    value.exit().remove();
-  });
-}
-
-function handleClick(piece) {
-  if (piece.column === 'hundreds' && digitsState.hundreds > 0) {
-    digitsState.hundreds -= 1;
-    digitsState.tens += 10;
-  } else if (piece.column === 'tens' && digitsState.tens > 0) {
-    digitsState.tens -= 1;
-    digitsState.ones += 10;
-  } else {
-    return;
-  }
-  document.getElementById('number-input').value = digitsToNumber(digitsState);
-  update(gRoot, columnWidthRoot, heightRoot, digitsState);
-}
-
-function handleRightClick(piece) {
-  if (piece.column === 'tens' && digitsState.tens >= 10) {
-    digitsState.tens -= 10;
-    digitsState.hundreds += 1;
-  } else if (piece.column === 'ones' && digitsState.ones >= 10) {
-    digitsState.ones -= 10;
-    digitsState.tens += 1;
-  } else {
-    return;
-  }
-  document.getElementById('number-input').value = digitsToNumber(digitsState);
-  update(gRoot, columnWidthRoot, heightRoot, digitsState);
-}
-
-export function update(g, columnWidth, height, value) {
-  digitsState = typeof value === 'object' ? value : splitNumber(value);
-  gRoot = g;
-  columnWidthRoot = columnWidth;
-  heightRoot = height;
-
-  const columnData = [digitsState.hundreds, digitsState.tens, digitsState.ones];
-  const columnGroups = g.selectAll('.column-group').data(columnData);
-  updateTexts(columnGroups, columnData, columnWidth);
-
-  const pos = computePositions(digitsState, columnWidth, height);
-
-  if (pieces.length < pos.length) {
-    for (let i = pieces.length; i < pos.length; i++) {
-      pieces.push({ id: nextId++ });
-    }
-  } else if (pieces.length > pos.length) {
-    pieces.splice(pos.length);
-  }
-
-  pos.forEach((p, i) => Object.assign(pieces[i], p));
-
-  const layer = g.selectAll('g.pieces-layer').data([null]);
-  const layerEnter = layer.enter().append('g').attr('class', 'pieces-layer');
-  const piecesLayer = layerEnter.merge(layer);
-
-  const rects = piecesLayer.selectAll('rect.unit').data(pieces, (d) => d.id);
-
-  rects
-    .enter()
-    .append('rect')
-    .attr('class', 'unit')
-    .attr('width', UNIT)
-    .attr('height', UNIT)
-    .attr('fill', '#69b3a2')
-    .attr('stroke', '#fff')
-    .attr('stroke-width', 0.5)
-    .on('click', (e, d) => handleClick(d))
-    .on('contextmenu', (e, d) => {
-      e.preventDefault();
-      handleRightClick(d);
-    })
-    .merge(rects)
-    .transition()
-    .attr('x', (d) => d.x)
-    .attr('y', (d) => d.y);
-
-  rects.exit().remove();
-}
-
