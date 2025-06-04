@@ -1,3 +1,5 @@
 # d3_regrouping_exchanging
 
-a d3 app that illustrates the concept of regrouping and exchanging for primary maths
+A simple D3 application to visualise regrouping and exchanging.
+
+Open `index.html` in a browser and enter a number (0-9999) to see it represented as columns for thousands, hundreds, tens and ones.
