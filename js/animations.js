@@ -74,7 +74,19 @@ export function animateTensToOnes(g, columnWidth, height, tensCount, onesCount, 
   return animatePieces(g, 10, createSquare, startPositions, endPositions);
 }
 
-export function animateTensToHundred(g, columnWidth, height, tensCount, hundredsCount) {
+export function animateTensToHundred(
+  g,
+  columnWidth,
+  height,
+  tensCount,
+  hundredsCount,
+  blocksG
+) {
+  if (blocksG) {
+    for (let i = tensCount - 10; i < tensCount; i++) {
+      blocksG.select(`g.ten-rod[data-index="${i}"]`).remove();
+    }
+  }
   const startPositions = Array.from({ length: 10 }, (_, i) =>
     tenPosition(tensCount - 10 + i, columnWidth, height)
   );
@@ -86,7 +98,19 @@ export function animateTensToHundred(g, columnWidth, height, tensCount, hundreds
   return animatePieces(g, 10, createRod, startPositions, endPositions);
 }
 
-export function animateOnesToTens(g, columnWidth, height, onesCount, tensCount) {
+export function animateOnesToTens(
+  g,
+  columnWidth,
+  height,
+  onesCount,
+  tensCount,
+  blocksG
+) {
+  if (blocksG) {
+    for (let i = onesCount - 10; i < onesCount; i++) {
+      blocksG.select(`rect[data-index="${i}"]`).remove();
+    }
+  }
   const startPositions = Array.from({ length: 10 }, (_, i) =>
     onePosition(onesCount - 10 + i, columnWidth, height)
   );
