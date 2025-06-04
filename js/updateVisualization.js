@@ -1,9 +1,11 @@
 import { splitNumber, digitPhrase, expandedValue, digitsToNumber } from './utils.js';
-
-const UNIT = 10; // size of a single unit square in pixels
-const GAP = 2; // gap between blocks
-const HUNDRED_SIZE = UNIT * 10;
-const TEXT_LINE_HEIGHT = 18;
+import { UNIT, GAP, HUNDRED_SIZE, TEXT_LINE_HEIGHT } from './constants.js';
+import {
+  animateHundredToTens,
+  animateTensToOnes,
+  animateTensToHundred,
+  animateOnesToTens,
+} from './animations.js';
 
 export function update(g, columnWidth, height, value) {
   const digits = typeof value === 'object' ? value : splitNumber(value);
@@ -51,8 +53,9 @@ export function update(g, columnWidth, height, value) {
       const blockHeight = height - offset;
 
       if (i === 0) {
-        drawHundreds(blocksG, d, blockHeight, () => {
+        drawHundreds(blocksG, d, blockHeight, async () => {
           if (digits.hundreds > 0) {
+            await animateHundredToTens(g, columnWidth, height);
             digits.hundreds -= 1;
             digits.tens += 10;
             document.getElementById('number-input').value = digitsToNumber(digits);
@@ -64,16 +67,18 @@ export function update(g, columnWidth, height, value) {
           blocksG,
           d,
           blockHeight,
-          () => {
+          async () => {
             if (digits.tens > 0) {
+              await animateTensToOnes(g, columnWidth, height);
               digits.tens -= 1;
               digits.ones += 10;
               document.getElementById('number-input').value = digitsToNumber(digits);
               update(g, columnWidth, height, digits);
             }
           },
-          () => {
+          async () => {
             if (digits.tens >= 10) {
+              await animateTensToHundred(g, columnWidth, height);
               digits.tens -= 10;
               digits.hundreds += 1;
               document.getElementById('number-input').value = digitsToNumber(digits);
@@ -82,8 +87,9 @@ export function update(g, columnWidth, height, value) {
           }
         );
       } else {
-        drawOnes(blocksG, d, blockHeight, () => {
+        drawOnes(blocksG, d, blockHeight, async () => {
           if (digits.ones >= 10) {
+            await animateOnesToTens(g, columnWidth, height);
             digits.ones -= 10;
             digits.tens += 1;
             document.getElementById('number-input').value = digitsToNumber(digits);
